@@ -64,17 +64,7 @@ void CaseLight::update(const bool sflag) {
   #endif
 
   #if CASE_LIGHT_IS_COLOR_LED
-    #if ENABLED(CASE_LIGHT_USE_NEOPIXEL)
-      if (on)
-        // Use current color of (NeoPixel) leds and new brightness level
-        leds.set_color(LEDColor(leds.color.r, leds.color.g, leds.color.b OPTARG(HAS_WHITE_LED, leds.color.w) OPTARG(NEOPIXEL_LED, n10ct)));
-      else
-        // Switch off leds
-        leds.set_off();
-    #else
-      // Use CaseLight color (CASE_LIGHT_DEFAULT_COLOR) and new brightness level
-      leds.set_color(LEDColor(color.r, color.g, color.b OPTARG(HAS_WHITE_LED, color.w) OPTARG(NEOPIXEL_LED, n10ct)));
-    #endif
+    leds.set_color(LEDColor(color.r, color.g, color.b OPTARG(HAS_WHITE_LED, color.w) OPTARG(NEOPIXEL_LED, n10ct)));
   #else // !CASE_LIGHT_IS_COLOR_LED
 
     #if CASELIGHT_USES_BRIGHTNESS

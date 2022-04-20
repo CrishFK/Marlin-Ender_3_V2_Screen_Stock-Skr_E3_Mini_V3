@@ -91,6 +91,9 @@
 #ifndef MACHINE_SIZE
   #define MACHINE_SIZE STRINGIFY(X_BED_SIZE) "x" STRINGIFY(Y_BED_SIZE) "x" STRINGIFY(Z_MAX_POS)
 #endif
+#ifndef CORP_WEBSITE
+  #define CORP_WEBSITE WEBSITE_URL
+#endif
 
 #define PAUSE_HEAT
 
@@ -1831,9 +1834,6 @@ void make_name_without_ext(char *dst, char *src, size_t maxlen=MENU_CHAR_LIMIT) 
 
 void HMI_SDCardInit() { card.cdroot(); }
 
-// Initialize or re-initialize the LCD
-void MarlinUI::init_lcd() { DWIN_Startup(); }
-
 void MarlinUI::refresh() { /* Nothing to see here */ }
 
 #if HAS_LCD_BRIGHTNESS
@@ -2762,10 +2762,7 @@ void HMI_Prepare() {
       #endif
 
       #if HAS_HOTEND || HAS_HEATED_BED
-        case PREPARE_CASE_COOL:
-          thermalManager.cooldown();
-          ui.reset_status();
-          break;
+        case PREPARE_CASE_COOL: thermalManager.cooldown(); break;
       #endif
 
       case PREPARE_CASE_LANG:

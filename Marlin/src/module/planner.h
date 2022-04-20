@@ -244,7 +244,6 @@ typedef struct block_t {
 
   #if ENABLED(POWER_LOSS_RECOVERY)
     uint32_t sdpos;
-    xyze_pos_t start_position;
   #endif
 
   #if ENABLED(LASER_POWER_INLINE)
@@ -253,7 +252,7 @@ typedef struct block_t {
 
 } block_t;
 
-#if ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX, LCD_SHOW_E_TOTAL, POWER_LOSS_RECOVERY)
+#if ANY(LIN_ADVANCE, SCARA_FEEDRATE_SCALING, GRADIENT_MIX, LCD_SHOW_E_TOTAL)
   #define HAS_POSITION_FLOAT 1
 #endif
 

@@ -39,9 +39,7 @@
 #endif
 
 /**
- * M907: Set digital trimpot motor current using axis codes X [Y] [Z] [E]
- *   B<current> - Special case for 4th (E) axis
- *   S<current> - Special case to set first 3 axes
+ * M907: Set digital trimpot motor current using axis codes X, Y, Z, E, B, S
  */
 void GcodeSuite::M907() {
   #if HAS_MOTOR_CURRENT_SPI
@@ -77,7 +75,7 @@ void GcodeSuite::M907() {
       if (parser.seenval('E')) stepper.set_digipot_current(2, parser.value_int());
     #endif
 
-  #endif // HAS_MOTOR_CURRENT_PWM
+  #endif
 
   #if HAS_MOTOR_CURRENT_I2C
     // this one uses actual amps in floating point

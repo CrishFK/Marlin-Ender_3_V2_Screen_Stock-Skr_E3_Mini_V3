@@ -25,6 +25,8 @@
  * NeoPixel support
  */
 
+#define MAX_NEOPIXELS 127
+
 #ifndef _NEOPIXEL_INCLUDE_
   #error "Always include 'leds.h' and not 'neopixel.h' directly."
 #endif
@@ -66,7 +68,7 @@
 // Types
 // ------------------------
 
-typedef IF<(TERN0(NEOPIXEL_LED, NEOPIXEL_PIXELS > 127)), int16_t, int8_t>::type pixel_index_t;
+typedef IF<(MAX_NEOPIXELS > 127), int16_t, int8_t>::type pixel_index_t;
 
 // ------------------------
 // Classes

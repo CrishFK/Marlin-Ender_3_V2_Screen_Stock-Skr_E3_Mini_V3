@@ -241,15 +241,14 @@ inline void probe_side(measurements_t &m, const float uncertainty, const side_t 
 
   park_above_object(m, uncertainty);
 
-  #define _ACASE(N,A,B) case A: dir = -1; case B: axis = N##_AXIS; break
-  #define _PCASE(N) _ACASE(N, N##MINIMUM, N##MAXIMUM)
-
   switch (side) {
     #if AXIS_CAN_CALIBRATE(X)
-      _ACASE(X, RIGHT, LEFT);
+      case RIGHT: dir = -1;
+      case LEFT:  axis = X_AXIS; break;
     #endif
     #if HAS_Y_AXIS && AXIS_CAN_CALIBRATE(Y)
-      _ACASE(Y, BACK, FRONT);
+      case BACK:  dir = -1;
+      case FRONT: axis = Y_AXIS; break;
     #endif
     #if HAS_Z_AXIS && AXIS_CAN_CALIBRATE(Z)
       case TOP: {
@@ -260,13 +259,16 @@ inline void probe_side(measurements_t &m, const float uncertainty, const side_t 
       }
     #endif
     #if HAS_I_AXIS && AXIS_CAN_CALIBRATE(I)
-      _PCASE(I);
+      case IMINIMUM: dir = -1;
+      case IMAXIMUM: axis = I_AXIS; break;
     #endif
     #if HAS_J_AXIS && AXIS_CAN_CALIBRATE(J)
-      _PCASE(J);
+      case JMINIMUM: dir = -1;
+      case JMAXIMUM: axis = J_AXIS; break;
     #endif
     #if HAS_K_AXIS && AXIS_CAN_CALIBRATE(K)
-      _PCASE(K);
+      case KMINIMUM: dir = -1;
+      case KMAXIMUM: axis = K_AXIS; break;
     #endif
     default: return;
   }

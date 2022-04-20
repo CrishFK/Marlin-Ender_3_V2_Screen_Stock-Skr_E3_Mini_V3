@@ -69,7 +69,7 @@
 #endif
 
 //
-// Filament Runout Sensor
+// Filament Runout Pins
 //
 #ifndef FIL_RUNOUT_PIN
   #define FIL_RUNOUT_PIN                      49

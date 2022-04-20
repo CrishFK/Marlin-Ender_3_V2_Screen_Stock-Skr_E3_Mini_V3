@@ -26,7 +26,7 @@
 
 #include "../../inc/MarlinConfigPre.h"
 
-#if HAS_MARLINUI_MENU
+#if HAS_LCD_MENU
 
 #include "menu_item.h"
 #include "../../module/motion.h"
@@ -236,4 +236,4 @@ void menu_tune() {
   END_MENU();
 }
 
-#endif // HAS_MARLINUI_MENU
+#endif // HAS_LCD_MENU

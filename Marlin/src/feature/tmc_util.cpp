@@ -40,7 +40,7 @@
   #endif
 #endif
 
-#if HAS_MARLINUI_MENU
+#if HAS_LCD_MENU
   #include "../module/stepper.h"
 #endif
 
@@ -421,10 +421,12 @@
         if (monitor_tmc_driver(stepperI, need_update_error_counters, need_debug_reporting))
           step_current_down(stepperI);
       #endif
+
       #if AXIS_IS_TMC(J)
         if (monitor_tmc_driver(stepperJ, need_update_error_counters, need_debug_reporting))
           step_current_down(stepperJ);
       #endif
+
       #if AXIS_IS_TMC(K)
         if (monitor_tmc_driver(stepperK, need_update_error_counters, need_debug_reporting))
           step_current_down(stepperK);
