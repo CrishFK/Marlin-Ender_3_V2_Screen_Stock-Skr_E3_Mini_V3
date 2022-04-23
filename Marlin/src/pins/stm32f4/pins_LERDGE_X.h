@@ -24,22 +24,23 @@
 #define ALLOW_STM32DUINO
 #include "env_validate.h"
 
-#if HAS_MULTI_HOTEND || E_STEPPERS > 1
+#if HOTENDS > 1 || E_STEPPERS > 1
   #error "LERDGE X only supports one hotend / E-stepper. Comment out this line to continue."
 #endif
 
 #define BOARD_INFO_NAME      "Lerdge X"
 #define DEFAULT_MACHINE_NAME "LERDGE"
 
-#define STEP_TIMER  4
-#define TEMP_TIMER  2
+#define STEP_TIMER                             4
+#define TEMP_TIMER                             2
 
 #define I2C_EEPROM
 #define I2C_SCL_PIN                         PB8
 #define I2C_SDA_PIN                         PB9
 #define MARLIN_EEPROM_SIZE               0x10000  // FM24CL64 F-RAM 64K (8Kx8)
 
-#define HAS_OTG_USB_HOST_SUPPORT                  // USB Flash Drive support
+// USB Flash Drive support
+#define HAS_OTG_USB_HOST_SUPPORT
 
 //
 // Servos

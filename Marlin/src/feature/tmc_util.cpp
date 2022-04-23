@@ -472,8 +472,12 @@
     void tmc_set_report_interval(const uint16_t update_interval) {
       if ((report_tmc_status_interval = update_interval))
         SERIAL_ECHOLNPGM("axis:pwm_scale"
-          TERN_(HAS_STEALTHCHOP, "/curr_scale")
-          TERN_(HAS_STALLGUARD, "/mech_load")
+          #if HAS_STEALTHCHOP
+            "/curr_scale"
+          #endif
+          #if HAS_STALLGUARD
+            "/mech_load"
+          #endif
           "|flags|warncount"
         );
     }

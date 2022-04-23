@@ -53,7 +53,7 @@ class Stopwatch {
      * @return true on success
      */
     static bool stop();
-    static bool abort() { return stop(); } // Alias by default
+    static inline bool abort() { return stop(); } // Alias by default
 
     /**
      * @brief Pause the stopwatch
@@ -114,7 +114,7 @@ class Stopwatch {
 
     #else
 
-      static void debug(FSTR_P const) {}
+      static inline void debug(FSTR_P const) {}
 
     #endif
 };

@@ -65,10 +65,6 @@ GcodeSuite gcode;
   #include "../feature/password/password.h"
 #endif
 
-#if HAS_FANCHECK
-  #include "../feature/fancheck.h"
-#endif
-
 #include "../MarlinCore.h" // for idle, kill
 
 // Inactivity shutdown
@@ -141,14 +137,12 @@ int8_t GcodeSuite::get_target_extruder_from_command() {
 }
 
 /**
- * Get the target E stepper from the 'T' parameter.
- * If there is no 'T' parameter then dval will be substituted.
- * Returns -1 if the resulting E stepper index is out of range.
+ * Get the target e stepper from the T parameter
+ * Return -1 if the T parameter is out of range or unspecified
  */
-int8_t GcodeSuite::get_target_e_stepper_from_command(const int8_t dval/*=-1*/) {
-  const int8_t e = parser.intval('T', dval);
+int8_t GcodeSuite::get_target_e_stepper_from_command() {
+  const int8_t e = parser.intval('T', -1);
   if (WITHIN(e, 0, E_STEPPERS - 1)) return e;
-  if (dval == -2) return dval;
 
   SERIAL_ECHO_START();
   SERIAL_CHAR('M'); SERIAL_ECHO(parser.codenum);
@@ -160,7 +154,7 @@ int8_t GcodeSuite::get_target_e_stepper_from_command(const int8_t dval/*=-1*/) {
 }
 
 /**
- * Set XYZ...E destination and feedrate from the current GCode command
+ * Set XYZIJKE destination and feedrate from the current GCode command
  *
  *  - Set destination from included axis codes
  *  - Set to current for missing axis codes
@@ -301,8 +295,6 @@ void GcodeSuite::dwell(millis_t time) {
  * Process the parsed command and dispatch it to its handler
  */
 void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
-  TERN_(HAS_FANCHECK, fan_check.check_deferred_error());
-
   KEEPALIVE_STATE(IN_HANDLER);
 
  /**
@@ -431,7 +423,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 61: G61(); break;                                    // G61:  Apply/restore saved coordinates.
       #endif
 
-      #if BOTH(PTC_PROBE, PTC_BED)
+      #if ENABLED(PROBE_TEMP_COMPENSATION)
         case 76: G76(); break;                                    // G76: Calibrate first layer compensation values
       #endif
 
@@ -584,10 +576,6 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 113: M113(); break;                                  // M113: Set Host Keepalive interval
       #endif
 
-      #if HAS_FANCHECK
-        case 123: M123(); break;                                  // M123: Report fan states or set fans auto-report interval
-      #endif
-
       #if HAS_HEATED_BED
         case 140: M140(); break;                                  // M140: Set bed temperature
         case 190: M190(); break;                                  // M190: Wait for bed temperature to reach target
@@ -596,10 +584,6 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       #if HAS_HEATED_CHAMBER
         case 141: M141(); break;                                  // M141: Set chamber temperature
         case 191: M191(); break;                                  // M191: Wait for chamber temperature to reach target
-      #endif
-
-      #if HAS_TEMP_PROBE
-        case 192: M192(); break;                                  // M192: Wait for probe temp
       #endif
 
       #if HAS_COOLER
@@ -655,7 +639,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
       case 120: M120(); break;                                    // M120: Enable endstops
       case 121: M121(); break;                                    // M121: Disable endstops
 
-      #if HAS_PREHEAT
+      #if PREHEAT_COUNT
         case 145: M145(); break;                                  // M145: Set material heatup parameters
       #endif
 
@@ -936,7 +920,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 852: M852(); break;                                  // M852: Set Skew factors
       #endif
 
-      #if HAS_PTC
+      #if ENABLED(PROBE_TEMP_COMPENSATION)
+        case 192: M192(); break;                                  // M192: Wait for probe temp
         case 871: M871(); break;                                  // M871: Print/reset/clear first layer temperature offset values
       #endif
 
@@ -971,7 +956,6 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         #if USE_SENSORLESS
           case 914: M914(); break;                                // M914: Set StallGuard sensitivity.
         #endif
-        case 919: M919(); break;                                  // M919: Set stepper Chopper Times
       #endif
 
       #if HAS_L64XX
@@ -1054,10 +1038,6 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
 
       #if ENABLED(MAX7219_GCODE)
         case 7219: M7219(); break;                                // M7219: Set LEDs, columns, and rows
-      #endif
-
-      #if ENABLED(HAS_MCP3426_ADC)
-        case 3426: M3426(); break;                                // M3426: Read MCP3426 ADC (over i2c)
       #endif
 
       default: parser.unknown_command_warning(); break;

@@ -63,7 +63,7 @@ void GcodeSuite::M140_M190(const bool isM190) {
   celsius_t temp = 0;
 
   // Accept 'I' if temperature presets are defined
-  #if HAS_PREHEAT
+  #if PREHEAT_COUNT
     got_temp = parser.seenval('I');
     if (got_temp) {
       const uint8_t index = parser.value_byte();

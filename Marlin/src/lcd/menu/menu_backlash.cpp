@@ -38,7 +38,7 @@ void menu_backlash() {
 
   EDIT_ITEM_FAST(percent, MSG_BACKLASH_CORRECTION, &backlash.correction, all_off, all_on);
 
-  #if DISABLED(CORE_BACKLASH) || EITHER(MARKFORGED_XY, MARKFORGED_YX)
+  #if DISABLED(CORE_BACKLASH) || ENABLED(MARKFORGED_XY)
     #define _CAN_CALI AXIS_CAN_CALIBRATE
   #else
     #define _CAN_CALI(A) true
@@ -51,13 +51,13 @@ void menu_backlash() {
   #if HAS_Z_AXIS && _CAN_CALI(C)
     EDIT_BACKLASH_DISTANCE(C);
   #endif
-  #if HAS_I_AXIS && _CAN_CALI(I)
+  #if LINEAR_AXES >= 4 && _CAN_CALI(I)
     EDIT_BACKLASH_DISTANCE(I);
   #endif
-  #if HAS_J_AXIS && _CAN_CALI(J)
+  #if LINEAR_AXES >= 5 && _CAN_CALI(J)
     EDIT_BACKLASH_DISTANCE(J);
   #endif
-  #if HAS_K_AXIS && _CAN_CALI(K)
+  #if LINEAR_AXES >= 6 && _CAN_CALI(K)
     EDIT_BACKLASH_DISTANCE(K);
   #endif
 

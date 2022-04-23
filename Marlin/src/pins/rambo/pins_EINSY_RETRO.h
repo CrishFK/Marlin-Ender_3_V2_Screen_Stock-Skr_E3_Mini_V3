@@ -55,6 +55,7 @@
 
   #define X_MIN_PIN                           12  // X-
   #define Y_MIN_PIN                           11  // Y-
+  #define Z_MIN_PIN                           10  // Z-
   #define X_MAX_PIN                           81  // X+
   #define Y_MAX_PIN                           57  // Y+
 
@@ -77,16 +78,15 @@
   #endif
 
   #if ENABLED(BLTOUCH)
-    #define Z_MIN_PIN                         11  // Y-
-    #define SERVO0_PIN                        10  // Z-
+    #define Z_MIN_PIN                         11  // Y-MIN
+    #define SERVO0_PIN                        10  // Z-MIN
+  #else
+    #define Z_MIN_PIN                         10
   #endif
 
 #endif
 
 #define Z_MAX_PIN                              7
-#ifndef Z_MIN_PIN                              7
-  #define Z_MIN_PIN                           10  // Z-
-#endif
 
 //
 // Z Probe (when not Z_MIN_PIN)

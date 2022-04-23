@@ -22,7 +22,7 @@
 
 #include "../../inc/MarlinConfig.h"
 
-#if HAS_PREHEAT
+#if PREHEAT_COUNT
 
 #include "../gcode.h"
 #include "../../lcd/marlinui.h"
@@ -79,4 +79,4 @@ void GcodeSuite::M145_report(const bool forReplay/*=true*/) {
   }
 }
 
-#endif // HAS_PREHEAT
+#endif // PREHEAT_COUNT

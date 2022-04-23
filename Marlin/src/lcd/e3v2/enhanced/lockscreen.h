@@ -22,10 +22,10 @@
 #pragma once
 
 /**
- * Lock screen implementation for DWIN UI Enhanced implementation
+ * DWIN UI Enhanced implementation
  * Author: Miguel A. Risco-Castillo
- * Version: 2.1
- * Date: 2021/11/09
+ * Version: 3.6.3
+ * Date: 2021/09/08
  */
 
 #include "../common/encoder.h"
@@ -36,11 +36,10 @@ private:
   static bool unlocked;
   static uint8_t lock_pos;
 public:
-  static uint8_t rprocess;
   static void init();
   static void onEncoder(EncoderState encoder_diffState);
   static void draw();
-  static bool isUnlocked() { return unlocked; }
+  static inline bool isUnlocked() { return unlocked; }
 };
 
 extern LockScreenClass lockScreen;

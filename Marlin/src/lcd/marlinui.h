@@ -56,6 +56,7 @@
 
 #if ENABLED(ADVANCED_PAUSE_FEATURE) && ANY(HAS_LCD_MENU, EXTENSIBLE_UI, HAS_DWIN_E3V2)
   #include "../feature/pause.h"
+  #include "../module/motion.h" // for active_extruder
 #endif
 
 #if ENABLED(DWIN_CREALITY_LCD)
@@ -115,7 +116,7 @@
   };
 #endif
 
-#if HAS_PREHEAT
+#if PREHEAT_COUNT
   typedef struct {
     #if HAS_HOTEND
       celsius_t hotend_temp;
@@ -274,8 +275,8 @@ public:
     static bool detected();
     static void init_lcd();
   #else
-    static bool detected() { return true; }
-    static void init_lcd() {}
+    static inline bool detected() { return true; }
+    static inline void init_lcd() {}
   #endif
 
   #if HAS_PRINT_PROGRESS
@@ -293,20 +294,20 @@ public:
       static void set_progress(const progress_t p) { progress_override = _MIN(p, 100U * (PROGRESS_SCALE)); }
       static void set_progress_done() { progress_override = (PROGRESS_MASK + 1U) + 100U * (PROGRESS_SCALE); }
       static void progress_reset() { if (progress_override & (PROGRESS_MASK + 1U)) set_progress(0); }
-    #endif
-    #if ENABLED(SHOW_REMAINING_TIME)
-      static uint32_t _calculated_remaining_time() {
-        const duration_t elapsed = print_job_timer.duration();
-        const progress_t progress = _get_progress();
-        return progress ? elapsed.value * (100 * (PROGRESS_SCALE) - progress) / progress : 0;
-      }
-      #if ENABLED(USE_M73_REMAINING_TIME)
-        static uint32_t remaining_time;
-        FORCE_INLINE static void set_remaining_time(const uint32_t r) { remaining_time = r; }
-        FORCE_INLINE static uint32_t get_remaining_time() { return remaining_time ?: _calculated_remaining_time(); }
-        FORCE_INLINE static void reset_remaining_time() { set_remaining_time(0); }
-      #else
-        FORCE_INLINE static uint32_t get_remaining_time() { return _calculated_remaining_time(); }
+      #if ENABLED(SHOW_REMAINING_TIME)
+        static inline uint32_t _calculated_remaining_time() {
+          const duration_t elapsed = print_job_timer.duration();
+          const progress_t progress = _get_progress();
+          return progress ? elapsed.value * (100 * (PROGRESS_SCALE) - progress) / progress : 0;
+        }
+        #if ENABLED(USE_M73_REMAINING_TIME)
+          static uint32_t remaining_time;
+          FORCE_INLINE static void set_remaining_time(const uint32_t r) { remaining_time = r; }
+          FORCE_INLINE static uint32_t get_remaining_time() { return remaining_time ?: _calculated_remaining_time(); }
+          FORCE_INLINE static void reset_remaining_time() { set_remaining_time(0); }
+        #else
+          FORCE_INLINE static uint32_t get_remaining_time() { return _calculated_remaining_time(); }
+        #endif
       #endif
     #endif
     static progress_t _get_progress();
@@ -342,12 +343,12 @@ public:
     static bool has_status();
     static void reset_status(const bool no_welcome=false);
     static void set_alert_status(FSTR_P const fstr);
-    static void reset_alert_level() { alert_level = 0; }
+    static inline void reset_alert_level() { alert_level = 0; }
   #else
     static constexpr bool has_status() { return false; }
-    static void reset_status(const bool=false) {}
-    static void set_alert_status(FSTR_P const) {}
-    static void reset_alert_level() {}
+    static inline void reset_status(const bool=false) {}
+    static inline void set_alert_status(FSTR_P const) {}
+    static inline void reset_alert_level() {}
   #endif
 
   static void set_status(const char * const cstr, const bool persist=false);
@@ -356,11 +357,8 @@ public:
 
   #if EITHER(HAS_DISPLAY, DWIN_CREALITY_LCD_ENHANCED)
     static void kill_screen(FSTR_P const lcd_error, FSTR_P const lcd_component);
-    #if DISABLED(LIGHTWEIGHT_UI)
-      static void draw_status_message(const bool blink);
-    #endif
   #else
-    static void kill_screen(FSTR_P const, FSTR_P const) {}
+    static inline void kill_screen(FSTR_P const, FSTR_P const) {}
   #endif
 
   #if HAS_DISPLAY
@@ -444,7 +442,11 @@ public:
       #if HAS_BUZZER
         static void completion_feedback(const bool good=true);
       #else
-        static void completion_feedback(const bool=true) { TERN_(HAS_TOUCH_SLEEP, wakeup_screen()); }
+        static inline void completion_feedback(const bool=true) { TERN_(HAS_TOUCH_SLEEP, wakeup_screen()); }
+      #endif
+
+      #if DISABLED(LIGHTWEIGHT_UI)
+        static void draw_status_message(const bool blink);
       #endif
 
       #if ENABLED(ADVANCED_PAUSE_FEATURE)
@@ -479,9 +481,9 @@ public:
 
   #else // No LCD
 
-    static void init() {}
-    static void update() {}
-    static void return_to_status() {}
+    static inline void init() {}
+    static inline void update() {}
+    static inline void return_to_status() {}
 
   #endif
 
@@ -495,21 +497,16 @@ public:
     static const char * scrolled_filename(CardReader &theCard, const uint8_t maxlen, uint8_t hash, const bool doScroll);
   #endif
 
-  #if HAS_PREHEAT
-    enum PreheatTarget : uint8_t { PT_HOTEND, PT_BED, PT_FAN, PT_CHAMBER, PT_ALL = 0xFF };
+  #if PREHEAT_COUNT
     static preheat_t material_preset[PREHEAT_COUNT];
     static PGM_P get_preheat_label(const uint8_t m);
-    static void apply_preheat(const uint8_t m, const uint8_t pmask, const uint8_t e=active_extruder);
-    static void preheat_set_fan(const uint8_t m) { TERN_(HAS_FAN, apply_preheat(m, _BV(PT_FAN))); }
-    static void preheat_hotend(const uint8_t m, const uint8_t e=active_extruder) { TERN_(HAS_HOTEND, apply_preheat(m, _BV(PT_HOTEND))); }
-    static void preheat_hotend_and_fan(const uint8_t m, const uint8_t e=active_extruder) { preheat_hotend(m, e); preheat_set_fan(m); }
-    static void preheat_bed(const uint8_t m) { TERN_(HAS_HEATED_BED, apply_preheat(m, _BV(PT_BED))); }
-    static void preheat_all(const uint8_t m) { apply_preheat(m, PT_ALL); }
   #endif
 
-  static void reset_status_timeout(const millis_t ms) {
-    TERN(SCREENS_CAN_TIME_OUT, return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS, UNUSED(ms));
-  }
+  #if SCREENS_CAN_TIME_OUT
+    static inline void reset_status_timeout(const millis_t ms) { return_to_status_ms = ms + LCD_TIMEOUT_TO_STATUS; }
+  #else
+    static inline void reset_status_timeout(const millis_t) {}
+  #endif
 
   #if HAS_LCD_MENU
 
@@ -546,11 +543,11 @@ public:
 
     // goto_previous_screen and go_back may also be used as menu item callbacks
     static void _goto_previous_screen(TERN_(TURBO_BACK_MENU_ITEM, const bool is_back));
-    static void goto_previous_screen() { _goto_previous_screen(TERN_(TURBO_BACK_MENU_ITEM, false)); }
-    static void go_back()              { _goto_previous_screen(TERN_(TURBO_BACK_MENU_ITEM, true)); }
+    static inline void goto_previous_screen() { _goto_previous_screen(TERN_(TURBO_BACK_MENU_ITEM, false)); }
+    static inline void go_back()              { _goto_previous_screen(TERN_(TURBO_BACK_MENU_ITEM, true)); }
 
     static void return_to_status();
-    static bool on_status_screen() { return currentScreen == status_screen; }
+    static inline bool on_status_screen() { return currentScreen == status_screen; }
     FORCE_INLINE static void run_current_screen() { (*currentScreen)(); }
 
     #if ENABLED(LIGHTWEIGHT_UI)
@@ -565,7 +562,7 @@ public:
       TERN(SCREENS_CAN_TIME_OUT, defer_return_to_status = defer, UNUSED(defer));
     }
 
-    static void goto_previous_screen_no_defer() {
+    static inline void goto_previous_screen_no_defer() {
       defer_status_screen(false);
       goto_previous_screen();
     }
@@ -597,20 +594,20 @@ public:
 
   #if EITHER(HAS_LCD_MENU, EXTENSIBLE_UI)
     static bool lcd_clicked;
-    static bool use_click() {
+    static inline bool use_click() {
       const bool click = lcd_clicked;
       lcd_clicked = false;
       return click;
     }
   #else
     static constexpr bool lcd_clicked = false;
-    static bool use_click() { return false; }
+    static inline bool use_click() { return false; }
   #endif
 
   #if ENABLED(ADVANCED_PAUSE_FEATURE) && ANY(HAS_LCD_MENU, EXTENSIBLE_UI, DWIN_CREALITY_LCD_ENHANCED, DWIN_CREALITY_LCD_JYERSUI)
     static void pause_show_message(const PauseMessage message, const PauseMode mode=PAUSE_MODE_SAME, const uint8_t extruder=active_extruder);
   #else
-    static void _pause_show_message() {}
+    static inline void _pause_show_message() {}
     #define pause_show_message(...) _pause_show_message()
   #endif
 
@@ -629,16 +626,16 @@ public:
     #endif
     #if DISABLED(EEPROM_AUTO_INIT)
       static void eeprom_alert(const uint8_t msgid);
-      static void eeprom_alert_crc()     { eeprom_alert(0); }
-      static void eeprom_alert_index()   { eeprom_alert(1); }
-      static void eeprom_alert_version() { eeprom_alert(2); }
+      static inline void eeprom_alert_crc()     { eeprom_alert(0); }
+      static inline void eeprom_alert_index()   { eeprom_alert(1); }
+      static inline void eeprom_alert_version() { eeprom_alert(2); }
     #endif
   #endif
 
   //
   // Special handling if a move is underway
   //
-  #if ANY(DELTA_CALIBRATION_MENU, DELTA_AUTO_CALIBRATION, PROBE_OFFSET_WIZARD, X_AXIS_TWIST_COMPENSATION) || (ENABLED(LCD_BED_LEVELING) && EITHER(PROBE_MANUALLY, MESH_BED_LEVELING))
+  #if ANY(DELTA_CALIBRATION_MENU, DELTA_AUTO_CALIBRATION, PROBE_OFFSET_WIZARD) || (ENABLED(LCD_BED_LEVELING) && EITHER(PROBE_MANUALLY, MESH_BED_LEVELING))
     #define LCD_HAS_WAIT_FOR_MOVE 1
     static bool wait_for_move;
   #else
@@ -672,7 +669,7 @@ public:
     #endif
 
     static void update_buttons();
-    static bool button_pressed() { return BUTTON_CLICK() || TERN(TOUCH_SCREEN, touch_pressed(), false); }
+    static inline bool button_pressed() { return BUTTON_CLICK() || TERN(TOUCH_SCREEN, touch_pressed(), false); }
     #if EITHER(AUTO_BED_LEVELING_UBL, G26_MESH_VALIDATION)
       static void wait_for_release();
     #endif
@@ -703,7 +700,7 @@ public:
 
   #else
 
-    static void update_buttons() {}
+    static inline void update_buttons() {}
 
   #endif
 

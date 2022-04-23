@@ -40,7 +40,8 @@
   #define MARLIN_EEPROM_SIZE             0x10000
 #endif
 
-#define HAS_OTG_USB_HOST_SUPPORT                  // USB Flash Drive support
+// USB Flash Drive support
+#define HAS_OTG_USB_HOST_SUPPORT
 
 //
 // Servos

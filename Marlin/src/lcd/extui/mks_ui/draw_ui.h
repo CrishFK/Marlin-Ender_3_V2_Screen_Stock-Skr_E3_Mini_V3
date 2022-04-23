@@ -178,7 +178,7 @@
 #endif // ifdef TFT35
 
 #ifdef __cplusplus
-  extern "C" {
+  extern "C" { /* C-declarations for C++ */
 #endif
 
 extern char public_buf_m[100];

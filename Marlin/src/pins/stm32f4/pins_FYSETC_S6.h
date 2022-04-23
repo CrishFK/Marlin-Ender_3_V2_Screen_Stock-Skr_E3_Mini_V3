@@ -128,7 +128,7 @@
     #define Y_SERIAL_TX_PIN                 PE14
   #endif
   #ifndef Y_SERIAL_RX_PIN
-    #define Y_SERIAL_RX_PIN                 PC4
+    #define Y_SERIAL_RX_PIN                 PE13
   #endif
   #ifndef Z_SERIAL_TX_PIN
     #define Z_SERIAL_TX_PIN                 PD11
@@ -162,9 +162,7 @@
 #define TEMP_0_PIN                          PC0
 #define TEMP_1_PIN                          PC1
 #define TEMP_2_PIN                          PC2
-#ifndef TEMP_BED_PIN
-  #define TEMP_BED_PIN                      PC3
-#endif
+#define TEMP_BED_PIN                        PC3
 
 //
 // Heaters / Fans
@@ -182,12 +180,8 @@
   #define HEATER_BED_PIN                    PC8
 #endif
 
-#ifndef FAN_PIN
-  #define FAN_PIN                           PB0
-#endif
-#ifndef FAN1_PIN
-  #define FAN1_PIN                          PB1
-#endif
+#define FAN_PIN                             PB0
+#define FAN1_PIN                            PB1
 #define FAN2_PIN                            PB2
 
 //
@@ -203,7 +197,7 @@
  *   PC11 | 8  7 | PD2      PC6  | 8  7 | PA4
  *   PC10   6  5 | PC12     PC7    6  5 | PA7
  *   PD0  | 4  3 | PD1      PB10 | 4  3 | RESET
- *    GND | 2  1 | 5V        GND | 2  1 | 5V
+ *   GND  | 2  1 | 5V       GND  | 2  1 | 5V
  *         ------                 ------
  *          EXP1                   EXP2
  */
