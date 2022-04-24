@@ -27,7 +27,7 @@
 
 #include "env_validate.h"
 
-#if HOTENDS > 1 || E_STEPPERS > 1
+#if HAS_MULTI_HOTEND || E_STEPPERS > 1
   #error "Creality V4 only supports one hotend / E-stepper. Comment out this line to continue."
 #endif
 
@@ -134,15 +134,16 @@
 //
 // Heaters / Fans
 //
-#define HEATER_0_PIN                        PA1   // HEATER1
-#define HEATER_BED_PIN                      PA2   // HOT BED
-
+#ifndef HEATER_0_PIN
+  #define HEATER_0_PIN                      PA1   // HEATER1
+#endif
+#ifndef HEATER_BED_PIN
+  #define HEATER_BED_PIN                    PA2   // HOT BED
+#endif
 #ifndef FAN_PIN
   #define FAN_PIN                           PA0   // FAN
 #endif
-#if PIN_EXISTS(FAN)
-  #define FAN_SOFT_PWM
-#endif
+#define FAN_SOFT_PWM_REQUIRED
 
 //
 // SD Card
@@ -206,32 +207,5 @@
   #define BTN_EN2                           PA4
 
   #define BEEPER_PIN                        PA5
-
-#endif
-
-// Defines pins for TMC UART control - Requires hardware modification
-#if HAS_TMC_UART
-
-  #ifdef TMC_UART_PIN_E
-    #define E0_SERIAL_TX_PIN TMC_UART_PIN_E
-    #define E0_SERIAL_RX_PIN TMC_UART_PIN_E
-  #endif
-
-  #ifdef TMC_UART_PIN_X
-    #define X_SERIAL_TX_PIN TMC_UART_PIN_X
-    #define X_SERIAL_RX_PIN TMC_UART_PIN_X
-  #endif
-
-  #ifdef TMC_UART_PIN_Y
-    #define Y_SERIAL_TX_PIN TMC_UART_PIN_Y
-    #define Y_SERIAL_RX_PIN TMC_UART_PIN_Y
-  #endif
-
-  #ifdef TMC_UART_PIN_Z
-    #define Z_SERIAL_TX_PIN TMC_UART_PIN_Z
-    #define Z_SERIAL_RX_PIN TMC_UART_PIN_Z
-  #endif
-
-  #define TMC_BAUD_RATE 19600
 
 #endif
