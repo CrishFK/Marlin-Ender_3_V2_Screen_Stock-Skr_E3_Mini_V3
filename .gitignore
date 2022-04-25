@@ -140,6 +140,7 @@ __vm/
 vc-fileutils.settings
 
 # Visual Studio Code
+*.vscode
 .vscode/*
 !.vscode/extensions.json
 
