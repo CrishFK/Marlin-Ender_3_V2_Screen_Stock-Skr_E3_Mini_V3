@@ -45,6 +45,14 @@
   #define PROBE_TRIGGERED() (READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING)
 #endif
 
+#ifdef Z_AFTER_HOMING
+   #define Z_POST_CLEARANCE Z_AFTER_HOMING
+#elif defined(Z_HOMING_HEIGHT)
+   #define Z_POST_CLEARANCE Z_HOMING_HEIGHT
+#else
+   #define Z_POST_CLEARANCE 10
+#endif
+
 #if ENABLED(PREHEAT_BEFORE_LEVELING)
   #ifndef LEVELING_NOZZLE_TEMP
     #define LEVELING_NOZZLE_TEMP 0
@@ -180,30 +188,47 @@ public:
       }
     #endif
 
-    static constexpr float _min_x(const xy_pos_t &probe_offset_xy=offset_xy) {
-      return TERN(IS_KINEMATIC,
-        (X_CENTER) - probe_radius(probe_offset_xy),
-        _MAX((X_MIN_BED) + (PROBING_MARGIN_LEFT), (X_MIN_POS) + probe_offset_xy.x)
-      );
-    }
-    static constexpr float _max_x(const xy_pos_t &probe_offset_xy=offset_xy) {
-      return TERN(IS_KINEMATIC,
-        (X_CENTER) + probe_radius(probe_offset_xy),
-        _MIN((X_MAX_BED) - (PROBING_MARGIN_RIGHT), (X_MAX_POS) + probe_offset_xy.x)
-      );
-    }
-    static constexpr float _min_y(const xy_pos_t &probe_offset_xy=offset_xy) {
-      return TERN(IS_KINEMATIC,
-        (Y_CENTER) - probe_radius(probe_offset_xy),
-        _MAX((Y_MIN_BED) + (PROBING_MARGIN_FRONT), (Y_MIN_POS) + probe_offset_xy.y)
-      );
-    }
-    static constexpr float _max_y(const xy_pos_t &probe_offset_xy=offset_xy) {
-      return TERN(IS_KINEMATIC,
-        (Y_CENTER) + probe_radius(probe_offset_xy),
-        _MIN((Y_MAX_BED) - (PROBING_MARGIN_BACK), (Y_MAX_POS) + probe_offset_xy.y)
-      );
-    }
+    /**
+     * The nozzle is only able to move within the physical bounds of the machine.
+     * If the PROBE has an OFFSET Marlin may need to apply additional limits so
+     * the probe can be prevented from going to unreachable points.
+     *
+     * e.g., If the PROBE is to the LEFT of the NOZZLE, it will be limited in how
+     * close it can get the RIGHT edge of the bed (unless the nozzle is able move
+     * far enough past the right edge).
+     */
+    
+    #if EXTJYERSUI && HAS_BED_PROBE
+      static float _min_x(const xy_pos_t &probe_offset_xy = offset_xy);
+      static float _max_x(const xy_pos_t &probe_offset_xy = offset_xy);
+      static float _min_y(const xy_pos_t &probe_offset_xy = offset_xy);
+      static float _max_y(const xy_pos_t &probe_offset_xy = offset_xy);
+    #else
+      static constexpr float _min_x(const xy_pos_t &probe_offset_xy=offset_xy) {
+          return TERN(IS_KINEMATIC,
+            (X_CENTER) - probe_radius(probe_offset_xy),
+            _MAX((X_MIN_BED) + (PROBING_MARGIN_LEFT), (X_MIN_POS) + probe_offset_xy.x)
+          );
+        }
+        static constexpr float _max_x(const xy_pos_t &probe_offset_xy=offset_xy) {
+          return TERN(IS_KINEMATIC,
+            (X_CENTER) + probe_radius(probe_offset_xy),
+            _MIN((X_MAX_BED) - (PROBING_MARGIN_RIGHT), (X_MAX_POS) + probe_offset_xy.x)
+          );
+        }
+        static constexpr float _min_y(const xy_pos_t &probe_offset_xy=offset_xy) {
+          return TERN(IS_KINEMATIC,
+            (Y_CENTER) - probe_radius(probe_offset_xy),
+            _MAX((Y_MIN_BED) + (PROBING_MARGIN_FRONT), (Y_MIN_POS) + probe_offset_xy.y)
+          );
+        }
+        static constexpr float _max_y(const xy_pos_t &probe_offset_xy=offset_xy) {
+          return TERN(IS_KINEMATIC,
+            (Y_CENTER) + probe_radius(probe_offset_xy),
+            _MIN((Y_MAX_BED) - (PROBING_MARGIN_BACK), (Y_MAX_POS) + probe_offset_xy.y)
+          );
+        }
+      #endif
 
     static float min_x() { return _min_x() TERN_(NOZZLE_AS_PROBE, TERN_(HAS_HOME_OFFSET, - home_offset.x)); }
     static float max_x() { return _max_x() TERN_(NOZZLE_AS_PROBE, TERN_(HAS_HOME_OFFSET, - home_offset.x)); }
@@ -222,7 +247,7 @@ public:
       static constexpr xy_pos_t default_probe_xy_offset = xy_pos_t({ default_probe_xyz_offset.x,  default_probe_xyz_offset.y });
 
     public:
-      static constexpr bool can_reach(float x, float y) {
+      TERN(EXTJYERSUI, static, static constexpr) bool can_reach(float x, float y) {
         #if IS_KINEMATIC
           return HYPOT2(x, y) <= sq(probe_radius(default_probe_xy_offset));
         #else
@@ -231,7 +256,7 @@ public:
         #endif
       }
 
-      static constexpr bool can_reach(const xy_pos_t &point) { return can_reach(point.x, point.y); }
+      TERN(EXTJYERSUI, static, static constexpr) bool can_reach(const xy_pos_t &point) { return can_reach(point.x, point.y); }
     };
 
     #if NEEDS_THREE_PROBE_POINTS

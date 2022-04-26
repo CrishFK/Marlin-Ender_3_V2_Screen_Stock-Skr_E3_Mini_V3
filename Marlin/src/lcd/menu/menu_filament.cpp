@@ -26,7 +26,7 @@
 
 #include "../../inc/MarlinConfigPre.h"
 
-#if BOTH(HAS_LCD_MENU, ADVANCED_PAUSE_FEATURE)
+#if BOTH(HAS_MARLINUI_MENU, ADVANCED_PAUSE_FEATURE)
 
 #include "menu_item.h"
 #include "../../module/temperature.h"
@@ -254,7 +254,9 @@ void menu_pause_option() {
   #if HAS_FILAMENT_SENSOR
     const bool still_out = runout.filament_ran_out;
     if (still_out)
-      EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &runout.enabled, runout.reset);
+      //EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &runout.enabled, runout.reset);
+      EDIT_ITEM(bool, MSG_RUNOUT_SENSOR, &runout.enabled[active_extruder], runout.reset);
+
   #else
     constexpr bool still_out = false;
   #endif
@@ -342,4 +344,4 @@ void MarlinUI::pause_show_message(
     ui.return_to_status();
 }
 
-#endif // HAS_LCD_MENU && ADVANCED_PAUSE_FEATURE
+#endif // HAS_MARLINUI_MENU && ADVANCED_PAUSE_FEATURE

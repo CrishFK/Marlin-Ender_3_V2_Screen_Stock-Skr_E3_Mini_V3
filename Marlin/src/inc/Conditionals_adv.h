@@ -23,7 +23,7 @@
 
 /**
  * Conditionals_adv.h
- * Defines that depend on advanced configuration.
+ * Conditionals set before pins.h and which depend on Configuration_adv.h.
  */
 
 #ifndef AXIS_RELATIVE_MODES
@@ -95,11 +95,12 @@
   #undef PID_EXTRUSION_SCALING
   #undef LIN_ADVANCE
   #undef FILAMENT_RUNOUT_SENSOR
+  #undef FIL_RUNOUT_ENABLED
+  #undef FIL_RUNOUT_MODE
+  #undef FIL_RUNOUT_DISTANCE_MM
   #undef ADVANCED_PAUSE_FEATURE
-  #undef FILAMENT_RUNOUT_DISTANCE_MM
   #undef FILAMENT_LOAD_UNLOAD_GCODES
   #undef DISABLE_INACTIVE_EXTRUDER
-  #undef FILAMENT_LOAD_UNLOAD_GCODES
   #undef EXTRUDER_RUNOUT_PREVENT
   #undef PREVENT_COLD_EXTRUSION
   #undef PREVENT_LENGTHY_EXTRUDE
@@ -118,9 +119,9 @@
 
 // Temperature sensor IDs
 #define HID_REDUNDANT -6
-#define HID_COOLER    -5
-#define HID_PROBE     -4
-#define HID_BOARD     -3
+#define HID_BOARD     -5
+#define HID_COOLER    -4
+#define HID_PROBE     -3
 #define HID_CHAMBER   -2
 #define HID_BED       -1
 #define HID_E0         0
@@ -543,19 +544,6 @@
   #define HAS_SERVICE_INTERVALS 1
 #endif
 
-#if ENABLED(FILAMENT_RUNOUT_SENSOR)
-  #define HAS_FILAMENT_SENSOR 1
-  #if NUM_RUNOUT_SENSORS > 1
-    #define MULTI_FILAMENT_SENSOR 1
-  #endif
-  #ifdef FILAMENT_RUNOUT_DISTANCE_MM
-    #define HAS_FILAMENT_RUNOUT_DISTANCE 1
-  #endif
-  #if ENABLED(MIXING_EXTRUDER)
-    #define WATCH_ALL_RUNOUT_SENSORS
-  #endif
-#endif
-
 // Probe Temperature Compensation
 #if !TEMP_SENSOR_PROBE
   #undef PTC_PROBE
@@ -581,6 +569,10 @@
 
 #if ENABLED(NO_SD_AUTOSTART)
   #undef MENU_ADDAUTOSTART
+#endif
+
+#if STATUS_MESSAGE_TIMEOUT_SEC > 0
+  #define HAS_STATUS_MESSAGE_TIMEOUT 1
 #endif
 
 #if EITHER(SDSUPPORT, LCD_SET_PROGRESS_MANUALLY)
@@ -618,6 +610,8 @@
 
 #if ANY(BLINKM, RGB_LED, RGBW_LED, PCA9632, PCA9533, NEOPIXEL_LED)
   #define HAS_COLOR_LEDS 1
+#else
+  #undef LED_POWEROFF_TIMEOUT
 #endif
 #if ALL(HAS_RESUME_CONTINUE, PRINTER_EVENT_LEDS, SDSUPPORT)
   #define HAS_LEDS_OFF_FLAG 1
@@ -628,7 +622,8 @@
 #endif
 
 #if ENABLED(Z_STEPPER_AUTO_ALIGN)
-  #if ENABLED(Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS)
+  #ifdef Z_STEPPER_ALIGN_STEPPER_XY
+    #define HAS_Z_STEPPER_ALIGN_STEPPER_XY 1
     #undef Z_STEPPER_ALIGN_AMP
   #endif
   #ifndef Z_STEPPER_ALIGN_AMP
@@ -677,11 +672,6 @@
   #define CUTTER_UNIT_IS(V)    (_CUTTER_POWER(CUTTER_POWER_UNIT) == _CUTTER_POWER(V))
 #endif
 
-// Add features that need hardware PWM here
-#if ANY(FAST_PWM_FAN, SPINDLE_LASER_USE_PWM)
-  #define NEEDS_HARDWARE_PWM 1
-#endif
-
 #if !defined(__AVR__) || !defined(USBCON)
   // Define constants and variables for buffering serial data.
   // Use only 0 or powers of 2 greater than 1
@@ -697,6 +687,10 @@
 #else
   // SERIAL_XON_XOFF not supported on USB-native devices
   #undef SERIAL_XON_XOFF
+#endif
+
+#if ENABLED(HOST_PROMPT_SUPPORT) && DISABLED(EMERGENCY_PARSER)
+  #define HAS_GCODE_M876 1
 #endif
 
 #if ENABLED(HOST_ACTION_COMMANDS)
@@ -743,9 +737,6 @@
 #endif
 
 #if EITHER(FYSETC_MINI_12864_2_1, FYSETC_242_OLED_12864)
-  #define LED_CONTROL_MENU
-  #define LED_USER_PRESET_STARTUP
-  #define LED_COLOR_PRESETS
   #ifndef LED_USER_PRESET_GREEN
     #define LED_USER_PRESET_GREEN      128
   #endif
@@ -986,8 +977,13 @@
   #endif
 #endif
 
+// Flags for Case Light having a brightness property
+#if ENABLED(CASE_LIGHT_ENABLE) && (NONE(CASE_LIGHT_NO_BRIGHTNESS, CASE_LIGHT_IS_COLOR_LED) || ENABLED(CASE_LIGHT_USE_NEOPIXEL))
+  #define CASELIGHT_USES_BRIGHTNESS 1
+#endif
+
 // Flag whether least_squares_fit.cpp is used
-#if ANY(AUTO_BED_LEVELING_UBL, AUTO_BED_LEVELING_LINEAR, Z_STEPPER_ALIGN_KNOWN_STEPPER_POSITIONS)
+#if ANY(AUTO_BED_LEVELING_UBL, AUTO_BED_LEVELING_LINEAR, HAS_Z_STEPPER_ALIGN_STEPPER_XY)
   #define NEED_LSF 1
 #endif
 

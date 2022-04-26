@@ -32,8 +32,39 @@
 
 FilamentMonitor runout;
 
-bool FilamentMonitorBase::enabled = true,
-     FilamentMonitorBase::filament_ran_out;  // = false
+//bool FilamentMonitorBase::enabled = true,
+bool FilamentMonitorBase::enabled[NUM_RUNOUT_SENSORS], // Initialized by settings.load
+     FilamentMonitorBase::filament_ran_out; // = false
+uint8_t FilamentMonitorBase::mode[NUM_RUNOUT_SENSORS]; // Initialized by settings.load
+
+void FilamentMonitorBase::setRunoutState() {
+      #define _SET_RUNOUT_PIN(P,S,U,D) do{ if (ENABLED(U)) {if ((S) == 1) SET_INPUT_PULLUP(P);  else SET_INPUT_PULLDOWN(P);}; if (ENABLED(D)) {if ((S) == 1) SET_INPUT_PULLDOWN(P); else SET_INPUT_PULLUP(P);}; }while(0)
+      #define SET_RUNOUT_PIN(N) _SET_RUNOUT_PIN(FIL_RUNOUT##N##_PIN, mode[(N) - 1], FIL_RUNOUT##N##_PULLUP, FIL_RUNOUT##N##_PULLDOWN)
+      #if NUM_RUNOUT_SENSORS >= 1
+        SET_RUNOUT_PIN(1);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 2
+        SET_RUNOUT_PIN(2);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 3
+        SET_RUNOUT_PIN(3);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 4
+        SET_RUNOUT_PIN(4);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 5
+        SET_RUNOUT_PIN(5);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 6
+        SET_RUNOUT_PIN(6);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 7
+        SET_RUNOUT_PIN(7);
+      #endif
+      #if NUM_RUNOUT_SENSORS >= 8
+        SET_RUNOUT_PIN(8);
+      #endif
+    }
 
 #if ENABLED(HOST_ACTION_COMMANDS)
   bool FilamentMonitorBase::host_handling; // = false
@@ -45,15 +76,10 @@ bool FilamentMonitorBase::enabled = true,
   #include "../core/debug_out.h"
 #endif
 
-#if HAS_FILAMENT_RUNOUT_DISTANCE
-  float RunoutResponseDelayed::runout_distance_mm = FILAMENT_RUNOUT_DISTANCE_MM;
-  volatile float RunoutResponseDelayed::runout_mm_countdown[NUM_RUNOUT_SENSORS];
-  #if ENABLED(FILAMENT_MOTION_SENSOR)
-    uint8_t FilamentSensorEncoder::motion_detected;
-  #endif
-#else
-  int8_t RunoutResponseDebounced::runout_count[NUM_RUNOUT_SENSORS]; // = 0
-#endif
+float RunoutResponseDelayed::runout_distance_mm[NUM_RUNOUT_SENSORS]; // Initialized by settings.load
+volatile float RunoutResponseDelayed::runout_mm_countdown[NUM_RUNOUT_SENSORS];
+uint8_t FilamentSensorCore::motion_detected;
+//
 
 //
 // Filament Runout event handler
@@ -68,8 +94,10 @@ bool FilamentMonitorBase::enabled = true,
 
 #if ENABLED(EXTENSIBLE_UI)
   #include "../lcd/extui/ui_api.h"
-#elif ENABLED(DWIN_CREALITY_LCD_ENHANCED)
-  #include "../lcd/e3v2/enhanced/dwin.h"
+#elif ENABLED(DWIN_LCD_PROUI)
+  #include "../lcd/e3v2/proui/dwin.h"
+#elif ENABLED(DWIN_CREALITY_LCD_JYERSUI)
+  #include "../lcd/e3v2/jyersui/dwin.h"
 #endif
 
 void event_filament_runout(const uint8_t extruder) {
@@ -88,7 +116,8 @@ void event_filament_runout(const uint8_t extruder) {
   #endif
 
   TERN_(EXTENSIBLE_UI, ExtUI::onFilamentRunout(ExtUI::getTool(extruder)));
-  TERN_(DWIN_CREALITY_LCD_ENHANCED, DWIN_FilamentRunout(extruder));
+  TERN_(DWIN_LCD_PROUI, DWIN_FilamentRunout(extruder));
+  TERN_(DWIN_CREALITY_LCD_JYERSUI, CrealityDWIN.DWIN_Filament_Runout(extruder));
 
   #if ANY(HOST_PROMPT_SUPPORT, HOST_ACTION_COMMANDS, MULTI_FILAMENT_SENSOR)
     const char tool = '0' + TERN0(MULTI_FILAMENT_SENSOR, extruder);

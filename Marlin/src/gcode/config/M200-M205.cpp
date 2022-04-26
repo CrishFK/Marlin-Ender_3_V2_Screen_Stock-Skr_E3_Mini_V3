@@ -93,12 +93,12 @@
     }
     #else
       SERIAL_ECHOLNPGM("  M200 S", parser.volumetric_enabled);
-      LOOP_L_N(i, EXTRUDERS) {
+      EXTRUDER_LOOP() {
         report_echo_start(forReplay);
         SERIAL_ECHOLNPGM(
-          "  M200 T", i, " D", LINEAR_UNIT(planner.filament_size[i])
+          "  M200 T", e, " D", LINEAR_UNIT(planner.filament_size[e])
           #if ENABLED(VOLUMETRIC_EXTRUDER_LIMIT)
-            , " L", LINEAR_UNIT(planner.volumetric_extruder_limit[i])
+            , " L", LINEAR_UNIT(planner.volumetric_extruder_limit[e])
           #endif
         );
       }
@@ -125,7 +125,8 @@ void GcodeSuite::M201() {
   #endif
 
   LOOP_LOGICAL_AXES(i) {
-    if (parser.seenval(axis_codes[i])) {
+    // if (parser.seenval(axis_codes[i])) {
+    if (parser.seenval(AXIS_CHAR(i))) {
       const uint8_t a = TERN(HAS_EXTRUDERS, (i == E_AXIS ? uint8_t(E_AXIS_N(target_extruder)) : i), i);
       planner.set_max_acceleration(a, parser.value_axis_units((AxisEnum)a));
     }
@@ -171,7 +172,8 @@ void GcodeSuite::M203() {
   if (target_extruder < 0) return;
 
   LOOP_LOGICAL_AXES(i)
-    if (parser.seenval(axis_codes[i])) {
+    // if (parser.seenval(axis_codes[i])) {
+    if (parser.seenval(AXIS_CHAR(i))) {
       const uint8_t a = TERN(HAS_EXTRUDERS, (i == E_AXIS ? uint8_t(E_AXIS_N(target_extruder)) : i), i);
       planner.set_max_feedrate(a, parser.value_axis_units((AxisEnum)a));
     }
@@ -288,8 +290,13 @@ void GcodeSuite::M205_report(const bool forReplay/*=true*/) {
   report_heading_etc(forReplay, F(
     "Advanced (B<min_segment_time_us> S<min_feedrate> T<min_travel_feedrate>"
     TERN_(HAS_JUNCTION_DEVIATION, " J<junc_dev>")
-    TERN_(HAS_CLASSIC_JERK, " X<max_x_jerk> Y<max_y_jerk> Z<max_z_jerk>")
-    TERN_(HAS_CLASSIC_E_JERK, " E<max_e_jerk>")
+    #if HAS_CLASSIC_JERK
+      LINEAR_AXIS_GANG(
+        " X<max_jerk>", " Y<max_jerk>", " Z<max_jerk>",
+        " " STR_I "<max_jerk>", " " STR_J "<max_jerk>", " " STR_K "<max_jerk>"
+      )
+    #endif
+    TERN_(HAS_CLASSIC_E_JERK, " E<max_jerk>")
     ")"
   ));
   SERIAL_ECHOLNPGM_P(

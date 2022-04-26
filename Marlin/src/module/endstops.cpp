@@ -47,6 +47,12 @@
   #include "../feature/joystick.h"
 #endif
 
+//add
+#if HAS_FILAMENT_SENSOR
+  #include "../feature/runout.h"
+#endif
+//
+
 #if HAS_BED_PROBE
   #include "probe.h"
 #endif
@@ -352,7 +358,7 @@ void Endstops::init() {
 
 } // Endstops::init
 
-// Called at ~1KHz from Temperature ISR: Poll endstop state if required
+// Called at ~1kHz from Temperature ISR: Poll endstop state if required
 void Endstops::poll() {
 
   TERN_(PINS_DEBUGGING, run_monitor()); // Report changes in endstop status
@@ -403,7 +409,7 @@ void Endstops::not_homing() {
 void Endstops::resync() {
   if (!abort_enabled()) return;     // If endstops/probes are disabled the loop below can hang
 
-  // Wait for Temperature ISR to run at least once (runs at 1KHz)
+  // Wait for Temperature ISR to run at least once (runs at 1kHz)
   TERN(ENDSTOP_INTERRUPTS_FEATURE, update(), safe_delay(2));
   while (TERN0(ENDSTOP_NOISE_THRESHOLD, endstop_poll_count)) safe_delay(1);
 }
@@ -558,7 +564,7 @@ void _O2 Endstops::report_states() {
   #if HAS_J_MAX
     ES_REPORT(J_MAX);
   #endif
-    #if HAS_K_MIN
+  #if HAS_K_MIN
     ES_REPORT(K_MIN);
   #endif
   #if HAS_K_MAX
@@ -570,31 +576,45 @@ void _O2 Endstops::report_states() {
   #if USES_Z_MIN_PROBE_PIN
     print_es_state(PROBE_TRIGGERED(), F(STR_Z_PROBE));
   #endif
-  #if MULTI_FILAMENT_SENSOR
-    #define _CASE_RUNOUT(N) case N: pin = FIL_RUNOUT##N##_PIN; state = FIL_RUNOUT##N##_STATE; break;
+  //add
+  #if HAS_FILAMENT_SENSOR
     LOOP_S_LE_N(i, 1, NUM_RUNOUT_SENSORS) {
       pin_t pin;
-      uint8_t state;
       switch (i) {
         default: continue;
+        #define _CASE_RUNOUT(N) case N: pin = FIL_RUNOUT##N##_PIN; break;
         REPEAT_1(NUM_RUNOUT_SENSORS, _CASE_RUNOUT)
+        #undef _CASE_RUNOUT
       }
-      SERIAL_ECHOPGM(STR_FILAMENT);
-      if (i > 1) SERIAL_CHAR(' ', '0' + i);
-      print_es_state(extDigitalRead(pin) != state);
+      //add
+      const uint8_t rm = runout.mode[i - 1],
+                    state = runout.out_state(i - 1);
+      //
+      #if DISABLED(SLIM_LCD_MENUS)
+        SERIAL_ECHOPGM(STR_FILAMENT);
+        if (i > 1) SERIAL_CHAR(' ', '0' + i);
+        //add
+        SERIAL_ECHOPGM(": ");
+        if (rm == 0)
+          SERIAL_ECHOLNPGM("DISABLED");
+        else if (rm == 7) {
+          SERIAL_ECHOPGM("MOTION : ");
+          print_es_state(extDigitalRead(pin) == state);
+        }
+        else
+          SERIAL_ECHOLNPGM_P(extDigitalRead(pin) == state ? PSTR("MISSING") : PSTR("PRESENT"));
+      #else
+        print_es_state(extDigitalRead(pin) == outval, F(STR_FILAMENT));
+      #endif
+    //
     }
-    #undef _CASE_RUNOUT
-  #elif HAS_FILAMENT_SENSOR
-    print_es_state(READ(FIL_RUNOUT1_PIN) != FIL_RUNOUT1_STATE, F(STR_FILAMENT));
+
   #endif
 
   TERN_(BLTOUCH, bltouch._reset_SW_mode());
   TERN_(JOYSTICK_DEBUG, joystick.report());
 
 } // Endstops::report_states
-
-// The following routines are called from an ISR context. It could be the temperature ISR, the
-// endstop ISR or the Stepper ISR.
 
 #if HAS_DELTA_SENSORLESS_PROBING
   #define __ENDSTOP(AXIS, ...) AXIS ##_MAX
@@ -607,13 +627,18 @@ void _O2 Endstops::report_states() {
 #endif
 #define _ENDSTOP(AXIS, MINMAX) __ENDSTOP(AXIS, MINMAX)
 
-// Check endstops - Could be called from Temperature ISR!
+/**
+ * Called from interrupt context by the Endstop ISR or Stepper ISR!
+ * Read endstops to get their current states, register hits for all
+ * axes moving in the direction of their endstops, and abort moves.
+ */
 void Endstops::update() {
 
-  #if !ENDSTOP_NOISE_THRESHOLD
-    if (!abort_enabled()) return;
+  #if !ENDSTOP_NOISE_THRESHOLD      // If not debouncing...
+    if (!abort_enabled()) return;   // ...and not enabled, exit.
   #endif
 
+  // Macros to update / copy the live_state
   #define UPDATE_ENDSTOP_BIT(AXIS, MINMAX) SET_BIT_TO(live_state, _ENDSTOP(AXIS, MINMAX), (READ(_ENDSTOP_PIN(AXIS, MINMAX)) != _ENDSTOP_INVERTING(AXIS, MINMAX)))
   #define COPY_LIVE_STATE(SRC_BIT, DST_BIT) SET_BIT_TO(live_state, DST_BIT, TEST(live_state, SRC_BIT))
 
@@ -1107,6 +1132,7 @@ void Endstops::update() {
 
 #if ENABLED(SPI_ENDSTOPS)
 
+  // Called from idle() to read Trinamic stall states
   bool Endstops::tmc_spi_homing_check() {
     bool hit = false;
     #if X_SPI_SENSORLESS
@@ -1345,7 +1371,7 @@ void Endstops::update() {
         ES_REPORT_CHANGE(K_MAX);
       #endif
       SERIAL_ECHOLNPGM("\n");
-      set_pwm_duty(pin_t(LED_PIN), local_LED_status);
+      hal.set_pwm_duty(pin_t(LED_PIN), local_LED_status);
       local_LED_status ^= 255;
       old_live_state_local = live_state_local;
     }

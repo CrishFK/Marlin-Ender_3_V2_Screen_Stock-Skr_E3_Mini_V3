@@ -103,6 +103,8 @@
 #define LEVELING_AUTO_COMMAND_EN        "AutoLeveling command settings"
 #define LEVELING_AUTO_ZOFFSET_EN        "Nozzle-to-probe offsets settings"
 
+#define LEVELING_ZOFFSET_TITLE_EN       "Machine Settings>Z Offset Wizard"
+
 #define LEVELING_PARA_CONF_TITLE_EN     "leveling setting"
 #define AUTO_LEVELING_ENABLE_EN         "Enable auto leveling"
 #define BLTOUCH_LEVELING_ENABLE_EN      "Enable BLTouch"
@@ -293,6 +295,7 @@
 #define CLOSE_TEXT_EN           "Close"
 
 #define BACK_TEXT_EN            "Back"
+#define SAVE_TEXT_EN            "Save"
 
 #define TOOL_PREHEAT_EN         "Preheat"
 #define TOOL_EXTRUDE_EN         "Extrusion"
@@ -721,7 +724,7 @@
 #define MESSAGE_PURGE_MORE_EN     "Purge"
 #define MESSAGE_CONTINUE_PRINT_EN "Print"
 #define EEPROM_SETTINGS_TITLE_EN  "EEPROM Settings"
-#define EEPROM_SETTINGS_STORE_EN  "Store settings to EEPROM"
+#define EEPROM_SETTINGS_STORE_EN  "Saved settings to EEPROM"
 #define EEPROM_SETTINGS_READ_EN   "Read settings from EEPROM"
 #define EEPROM_SETTINGS_REVERT_EN "Revert settings to factory defaults"
 
