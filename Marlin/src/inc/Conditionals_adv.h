@@ -1047,7 +1047,7 @@
     #endif
   #endif
   #ifdef LCD_SERIAL_PORT
-    #define AUTO_ASSIGNED_LCD_SERIAL 1
+    //#define AUTO_ASSIGNED_LCD_SERIAL 1
   #endif
 #endif
 
