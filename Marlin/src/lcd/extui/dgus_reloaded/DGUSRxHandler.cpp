@@ -47,9 +47,7 @@ void DGUSRxHandler::ScreenChange(DGUS_VP &vp, void *data_ptr) {
 
   if (vp.addr == DGUS_Addr::SCREENCHANGE_SD) {
     #if ENABLED(SDSUPPORT)
-      #if !PIN_EXISTS(SD_DETECT)
-        card.mount();
-      #endif
+      IF_DISABLED(HAS_SD_DETECT, card.mount());
 
       if (!ExtUI::isMediaInserted()) {
         dgus_screen_handler.SetStatusMessage(GET_TEXT_F(MSG_NO_MEDIA));
@@ -327,7 +325,7 @@ void DGUSRxHandler::TempTarget(DGUS_VP &vp, void *data_ptr) {
     case DGUS_Addr::TEMP_SetTarget_H0:
       ExtUI::setTargetTemp_celsius(temp, ExtUI::H0);
       break;
-    #if HOTENDS > 1
+    #if HAS_MULTI_HOTEND
       case DGUS_Addr::TEMP_SetTarget_H1:
         ExtUI::setTargetTemp_celsius(temp, ExtUI::H1);
         break;
@@ -347,7 +345,7 @@ void DGUSRxHandler::TempCool(DGUS_VP &vp, void *data_ptr) {
     case DGUS_Data::Heater::ALL:
       ExtUI::setTargetTemp_celsius(0, ExtUI::BED);
       ExtUI::setTargetTemp_celsius(0, ExtUI::H0);
-      #if HOTENDS > 1
+      #if HAS_MULTI_HOTEND
         ExtUI::setTargetTemp_celsius(0, ExtUI::H1);
       #endif
       break;
@@ -357,7 +355,7 @@ void DGUSRxHandler::TempCool(DGUS_VP &vp, void *data_ptr) {
     case DGUS_Data::Heater::H0:
       ExtUI::setTargetTemp_celsius(0, ExtUI::H0);
       break;
-    #if HOTENDS > 1
+    #if HAS_MULTI_HOTEND
       case DGUS_Data::Heater::H1:
         ExtUI::setTargetTemp_celsius(0, ExtUI::H1);
         break;
@@ -466,7 +464,7 @@ void DGUSRxHandler::MoveToPoint(DGUS_VP &vp, void *data_ptr) {
   }
 
   const uint8_t point = ((uint8_t*)data_ptr)[1];
-  constexpr float lfrb[4] = LEVEL_CORNERS_INSET_LFRB;
+  constexpr float lfrb[4] = BED_TRAMMING_INSET_LFRB;
   float x, y;
 
   switch (point) {
@@ -493,12 +491,12 @@ void DGUSRxHandler::MoveToPoint(DGUS_VP &vp, void *data_ptr) {
       break;
   }
 
-  if (ExtUI::getAxisPosition_mm(ExtUI::Z) < Z_MIN_POS + LEVEL_CORNERS_Z_HOP) {
-    ExtUI::setAxisPosition_mm(Z_MIN_POS + LEVEL_CORNERS_Z_HOP, ExtUI::Z);
+  if (ExtUI::getAxisPosition_mm(ExtUI::Z) < Z_MIN_POS + BED_TRAMMING_Z_HOP) {
+    ExtUI::setAxisPosition_mm(Z_MIN_POS + BED_TRAMMING_Z_HOP, ExtUI::Z);
   }
   ExtUI::setAxisPosition_mm(x, ExtUI::X);
   ExtUI::setAxisPosition_mm(y, ExtUI::Y);
-  ExtUI::setAxisPosition_mm(Z_MIN_POS + LEVEL_CORNERS_HEIGHT, ExtUI::Z);
+  ExtUI::setAxisPosition_mm(Z_MIN_POS + BED_TRAMMING_HEIGHT, ExtUI::Z);
 }
 
 void DGUSRxHandler::Probe(DGUS_VP &vp, void *data_ptr) {
@@ -827,7 +825,7 @@ void DGUSRxHandler::PIDSelect(DGUS_VP &vp, void *data_ptr) {
       dgus_screen_handler.pid_heater = heater;
       break;
     case DGUS_Data::Heater::H0:
-    #if HOTENDS > 1
+    #if HAS_MULTI_HOTEND
       case DGUS_Data::Heater::H1:
     #endif
       dgus_screen_handler.pid_temp = DGUS_PLA_TEMP_HOTEND;
@@ -858,7 +856,7 @@ void DGUSRxHandler::PIDSetTemp(DGUS_VP &vp, void *data_ptr) {
     case DGUS_Data::Heater::H0:
       temp = constrain(temp, HEATER_0_MINTEMP, (HEATER_0_MAXTEMP - HOTEND_OVERSHOOT));
       break;
-    #if HOTENDS > 1
+    #if HAS_MULTI_HOTEND
       case DGUS_Data::Heater::H1:
         temp = constrain(temp, HEATER_1_MINTEMP, (HEATER_1_MAXTEMP - HOTEND_OVERSHOOT));
         break;
@@ -900,7 +898,7 @@ void DGUSRxHandler::PIDRun(DGUS_VP &vp, void *data_ptr) {
         dgus_screen_handler.SetStatusMessage(F("PID disabled"));
         return;
       #endif
-    #if HOTENDS > 1
+    #if HAS_MULTI_HOTEND
       case DGUS_Data::Heater::H1:
         #if ENABLED(PIDTEMP)
           heater = H_E1;
