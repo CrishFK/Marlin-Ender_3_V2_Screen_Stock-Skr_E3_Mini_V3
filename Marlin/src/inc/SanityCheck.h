@@ -587,7 +587,7 @@
 #elif defined(MKS_LCD12864)
   #error "MKS_LCD12864 is now MKS_LCD12864A or MKS_LCD12864B."
 #elif defined(DOGM_SD_PERCENT)
-  #error "DOGM_SD_PERCENT is now SHOW_SD_PERCENT."
+  #error "DOGM_SD_PERCENT is now SHOW_PROGRESS_PERCENT."
 #elif defined(NEOPIXEL_BKGD_LED_INDEX)
   #error "NEOPIXEL_BKGD_LED_INDEX is now NEOPIXEL_BKGD_INDEX_FIRST."
 #elif defined(TEMP_SENSOR_1_AS_REDUNDANT)
@@ -642,6 +642,18 @@
   #error "LEVEL_CORNERS_* settings have been renamed BED_TRAMMING_*."
 #elif defined(LEVEL_CENTER_TOO)
   #error "LEVEL_CENTER_TOO is now BED_TRAMMING_INCLUDE_CENTER."
+#elif defined(TOUCH_IDLE_SLEEP)
+  #error "TOUCH_IDLE_SLEEP (seconds) is now TOUCH_IDLE_SLEEP_MINS (minutes)."
+#elif defined(LCD_BACKLIGHT_TIMEOUT)
+  #error "LCD_BACKLIGHT_TIMEOUT (seconds) is now LCD_BACKLIGHT_TIMEOUT_MINS (minutes)."
+#elif defined(LCD_SET_PROGRESS_MANUALLY)
+  #error "LCD_SET_PROGRESS_MANUALLY is now SET_PROGRESS_MANUALLY."
+#elif defined(USE_M73_REMAINING_TIME)
+  #error "USE_M73_REMAINING_TIME is now SET_REMAINING_TIME."
+#elif defined(SHOW_SD_PERCENT)
+  #error "SHOW_SD_PERCENT is now SHOW_PROGRESS_PERCENT."
+#elif defined(EXTRA_LIN_ADVANCE_K)
+  #error "EXTRA_LIN_ADVANCE_K is now ADVANCE_K_EXTRA."
 #endif
 
 // L64xx stepper drivers have been removed
@@ -890,8 +902,8 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
  * Progress Bar
  */
 #if ENABLED(LCD_PROGRESS_BAR)
-  #if NONE(SDSUPPORT, LCD_SET_PROGRESS_MANUALLY)
-    #error "LCD_PROGRESS_BAR requires SDSUPPORT or LCD_SET_PROGRESS_MANUALLY."
+  #if NONE(SDSUPPORT, SET_PROGRESS_MANUALLY)
+    #error "LCD_PROGRESS_BAR requires SDSUPPORT or SET_PROGRESS_MANUALLY."
   #elif NONE(HAS_MARLINUI_HD44780, IS_TFTGLCD_PANEL)
     #error "LCD_PROGRESS_BAR only applies to HD44780 character LCD and TFTGLCD_PANEL_(SPI|I2C)."
   #elif HAS_MARLINUI_U8GLIB || IS_DWIN_MARLINUI
@@ -901,12 +913,14 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #elif PROGRESS_MSG_EXPIRE < 0
     #error "PROGRESS_MSG_EXPIRE must be greater than or equal to 0."
   #endif
-#elif ENABLED(LCD_SET_PROGRESS_MANUALLY) && NONE(HAS_MARLINUI_U8GLIB, HAS_GRAPHICAL_TFT, HAS_MARLINUI_HD44780, EXTENSIBLE_UI, HAS_DWIN_E3V2, IS_DWIN_MARLINUI)
-  #error "LCD_SET_PROGRESS_MANUALLY requires LCD_PROGRESS_BAR, Character LCD, Graphical LCD, TFT, DWIN_CREALITY_LCD, DWIN_LCD_PROUI, DWIN_CREALITY_LCD_JYERSUI, DWIN_MARLINUI_*, OR EXTENSIBLE_UI."
 #endif
 
-#if ENABLED(USE_M73_REMAINING_TIME) && DISABLED(LCD_SET_PROGRESS_MANUALLY)
-  #error "USE_M73_REMAINING_TIME requires LCD_SET_PROGRESS_MANUALLY"
+#if ENABLED(SET_PROGRESS_MANUALLY) && NONE(SET_PROGRESS_PERCENT, SET_REMAINING_TIME, SET_INTERACTION_TIME)
+  #error "SET_PROGRESS_MANUALLY requires at least one of SET_PROGRESS_PERCENT, SET_REMAINING_TIME, SET_INTERACTION_TIME to be enabled."
+#endif
+
+#if HAS_LCDPRINT && LCD_HEIGHT < 4 && ANY(SHOW_PROGRESS_PERCENT, SHOW_ELAPSED_TIME, SHOW_REMAINING_TIME, SHOW_INTERACTION_TIME)
+  #error "Displays with fewer than 4 rows of text can't show progress values."
 #endif
 
 #if !HAS_MARLINUI_MENU && ENABLED(SD_REPRINT_LAST_SELECTED_FILE)
@@ -1324,10 +1338,15 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
  * Linear Advance 1.5 - Check K value range
  */
 #if ENABLED(LIN_ADVANCE)
-  static_assert(
-    WITHIN(LIN_ADVANCE_K, 0, 10),
-    "LIN_ADVANCE_K must be a value from 0 to 10 (Changed in LIN_ADVANCE v1.5, Marlin 1.1.9)."
-  );
+  #if DISTINCT_E > 1
+    constexpr float lak[] = ADVANCE_K;
+    static_assert(COUNT(lak) < DISTINCT_E, "The ADVANCE_K array has too many elements (i.e., more than " STRINGIFY(DISTINCT_E) ").");
+    #define _LIN_ASSERT(N) static_assert(N >= COUNT(lak) || WITHIN(lak[N], 0, 10), "ADVANCE_K values must be from 0 to 10 (Changed in LIN_ADVANCE v1.5, Marlin 1.1.9).");
+    REPEAT(DISTINCT_E, _LIN_ASSERT)
+    #undef _LIN_ASSERT
+  #else
+    static_assert(WITHIN(ADVANCE_K, 0, 10), "ADVANCE_K must be from 0 to 10 (Changed in LIN_ADVANCE v1.5, Marlin 1.1.9).");
+  #endif
   #if ENABLED(S_CURVE_ACCELERATION) && DISABLED(EXPERIMENTAL_SCURVE)
     #error "LIN_ADVANCE and S_CURVE_ACCELERATION may not play well together! Enable EXPERIMENTAL_SCURVE to continue."
   #elif ENABLED(DIRECT_STEPPING)
@@ -2040,6 +2059,12 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   );
 #endif
 
+#define COUNT_SENSORLESS COUNT_ENABLED(Z_SENSORLESS, Z2_SENSORLESS, Z3_SENSORLESS, Z4_SENSORLESS)
+#if COUNT_SENSORLESS && COUNT_SENSORLESS != NUM_Z_STEPPERS
+  #error "All Z steppers must have *_STALL_SENSITIVITY defined to use Z sensorless homing."
+#endif
+#undef COUNT_SENSORLESS
+
 #ifdef SENSORLESS_BACKOFF_MM
   constexpr float sbm[] = SENSORLESS_BACKOFF_MM;
   static_assert(COUNT(sbm) == NUM_AXES, "SENSORLESS_BACKOFF_MM must have " _NUM_AXES_STR "elements (and no others).");
@@ -2193,14 +2218,22 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 #if ENABLED(USE_CONTROLLER_FAN)
   #if !HAS_CONTROLLER_FAN
     #error "USE_CONTROLLER_FAN requires a CONTROLLER_FAN_PIN. Define in Configuration_adv.h."
-  #elif E0_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
+  #elif PIN_EXISTS(E0_AUTO_FAN) && E0_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
     #error "You cannot set E0_AUTO_FAN_PIN equal to CONTROLLER_FAN_PIN."
-  #elif E1_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
+  #elif PIN_EXISTS(E1_AUTO_FAN) && E1_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
     #error "You cannot set E1_AUTO_FAN_PIN equal to CONTROLLER_FAN_PIN."
-  #elif E2_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
+  #elif PIN_EXISTS(E2_AUTO_FAN) && E2_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
     #error "You cannot set E2_AUTO_FAN_PIN equal to CONTROLLER_FAN_PIN."
-  #elif E3_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
+  #elif PIN_EXISTS(E3_AUTO_FAN) && E3_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
     #error "You cannot set E3_AUTO_FAN_PIN equal to CONTROLLER_FAN_PIN."
+  #elif PIN_EXISTS(E4_AUTO_FAN) && E4_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
+    #error "You cannot set E4_AUTO_FAN_PIN equal to CONTROLLER_FAN_PIN."
+  #elif PIN_EXISTS(E5_AUTO_FAN) && E5_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
+    #error "You cannot set E5_AUTO_FAN_PIN equal to CONTROLLER_FAN_PIN."
+  #elif PIN_EXISTS(E6_AUTO_FAN) && E6_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
+    #error "You cannot set E6_AUTO_FAN_PIN equal to CONTROLLER_FAN_PIN."
+  #elif PIN_EXISTS(E7_AUTO_FAN) && E7_AUTO_FAN_PIN == CONTROLLER_FAN_PIN
+    #error "You cannot set E7_AUTO_FAN_PIN equal to CONTROLLER_FAN_PIN."
   #endif
 #endif
 
@@ -2255,6 +2288,37 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 #endif
 
 /**
+ * Required thermistor 66 (Dyze Design / Trianglelab T-D500) settings
+ * https://docs.dyzedesign.com/hotends.html#_500-%C2%B0c-thermistor
+ */
+#if ANY_E_SENSOR_IS(66)
+  #define _BAD_MINTEMP(N) (TEMP_SENSOR(N) == 66 && HEATER_##N##_MINTEMP <= 20)
+  #if _BAD_MINTEMP(0)
+    #error "Thermistor 66 requires HEATER_0_MINTEMP > 20."
+  #elif _BAD_MINTEMP(1)
+    #error "Thermistor 66 requires HEATER_1_MINTEMP > 20."
+  #elif _BAD_MINTEMP(2)
+    #error "Thermistor 66 requires HEATER_2_MINTEMP > 20."
+  #elif _BAD_MINTEMP(3)
+    #error "Thermistor 66 requires HEATER_3_MINTEMP > 20."
+  #elif _BAD_MINTEMP(4)
+    #error "Thermistor 66 requires HEATER_4_MINTEMP > 20."
+  #elif _BAD_MINTEMP(5)
+    #error "Thermistor 66 requires HEATER_5_MINTEMP > 20."
+  #elif _BAD_MINTEMP(6)
+    #error "Thermistor 66 requires HEATER_6_MINTEMP > 20."
+  #elif _BAD_MINTEMP(7)
+    #error "Thermistor 66 requires HEATER_7_MINTEMP > 20."
+  #endif
+  #if MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED < 5
+    #error "Thermistor 66 requires MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED ≥ 5."
+  #elif MILLISECONDS_PREHEAT_TIME < 30000
+    #error "Thermistor 66 requires MILLISECONDS_PREHEAT_TIME ≥ 30000."
+  #endif
+  #undef _BAD_MINTEMP
+#endif
+
+/**
  * Required MAX31865 settings
  */
 #if TEMP_SENSOR_0_IS_MAX31865 || (TEMP_SENSOR_REDUNDANT_IS_MAX31865 && REDUNDANT_TEMP_MATCH(SOURCE, E0))
@@ -2276,7 +2340,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
  * Redundant temperature sensor config
  */
 #if HAS_TEMP_REDUNDANT
-  #if !defined(TEMP_SENSOR_REDUNDANT_SOURCE)
+  #ifndef TEMP_SENSOR_REDUNDANT_SOURCE
     #error "TEMP_SENSOR_REDUNDANT requires TEMP_SENSOR_REDUNDANT_SOURCE."
   #elif !defined(TEMP_SENSOR_REDUNDANT_TARGET)
     #error "TEMP_SENSOR_REDUNDANT requires TEMP_SENSOR_REDUNDANT_TARGET."
@@ -2984,7 +3048,7 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
 #endif
 
 #if ENABLED(ANYCUBIC_LCD_CHIRON)
-  #if !defined(BEEPER_PIN)
+  #ifndef BEEPER_PIN
     #error "ANYCUBIC_LCD_CHIRON requires BEEPER_PIN"
   #elif DISABLED(SDSUPPORT)
     #error "ANYCUBIC_LCD_CHIRON requires SDSUPPORT"
@@ -3030,11 +3094,11 @@ static_assert(Y_MAX_LENGTH >= Y_BED_SIZE, "Movement bounds (Y_MIN_POS, Y_MAX_POS
   #endif
 #endif
 
-#if LCD_BACKLIGHT_TIMEOUT
+#if LCD_BACKLIGHT_TIMEOUT_MINS
   #if !HAS_ENCODER_ACTION
-    #error "LCD_BACKLIGHT_TIMEOUT requires an LCD with encoder or keypad."
+    #error "LCD_BACKLIGHT_TIMEOUT_MINS requires an LCD with encoder or keypad."
   #elif !PIN_EXISTS(LCD_BACKLIGHT)
-    #error "LCD_BACKLIGHT_TIMEOUT requires LCD_BACKLIGHT_PIN."
+    #error "LCD_BACKLIGHT_TIMEOUT_MINS requires LCD_BACKLIGHT_PIN."
   #endif
 #endif
 
@@ -3987,10 +4051,6 @@ static_assert(_PLUS_TEST(4), "HOMING_FEEDRATE_MM_M values must be positive.");
   #error "COOLANT_MIST requires COOLANT_MIST_PIN to be defined."
 #elif ENABLED(COOLANT_FLOOD) && !PIN_EXISTS(COOLANT_FLOOD)
   #error "COOLANT_FLOOD requires COOLANT_FLOOD_PIN to be defined."
-#endif
-
-#if NONE(HAS_MARLINUI_U8GLIB, EXTENSIBLE_UI, IS_DWIN_MARLINUI) && ENABLED(PRINT_PROGRESS_SHOW_DECIMALS)
-  #error "PRINT_PROGRESS_SHOW_DECIMALS currently requires a Graphical LCD."
 #endif
 
 #if HAS_ADC_BUTTONS && defined(ADC_BUTTON_DEBOUNCE_DELAY) && ADC_BUTTON_DEBOUNCE_DELAY < 16

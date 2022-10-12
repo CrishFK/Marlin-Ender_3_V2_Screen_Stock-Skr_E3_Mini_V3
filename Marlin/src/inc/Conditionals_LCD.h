@@ -373,6 +373,7 @@
 
   #define LCD_I2C_TYPE_PCF8575    // I2C Character-based 12864 display
   #define LCD_I2C_ADDRESS 0x27    // I2C Address of the port expander
+  #define IS_ULTIPANEL 1
 
   #if ENABLED(LCD_SAINSMART_I2C_2004)
     #define LCD_WIDTH 20
@@ -526,10 +527,6 @@
 
 #if ANY(HAS_MARLINUI_MENU, EXTENSIBLE_UI, HAS_DWIN_E3V2)
   #define HAS_MANUAL_MOVE_MENU 1
-#endif
-
-#if ANY(HAS_MARLINUI_U8GLIB, EXTENSIBLE_UI, HAS_MARLINUI_HD44780, IS_TFTGLCD_PANEL, IS_DWIN_MARLINUI, DWIN_CREALITY_LCD_JYERSUI)
-  #define CAN_SHOW_REMAINING_TIME 1
 #endif
 
 #if HAS_MARLINUI_U8GLIB
@@ -993,7 +990,7 @@
  *  with shared motion and temperature settings.
  *
  * DISTINCT_E is the number of distinguished extruders. By default this
- *  well be 1 which indicates all extruders share the same settings.
+ *  will be 1 which indicates all extruders share the same settings.
  *
  * E_INDEX_N(E) should be used to get the E index of any item that might be
  *  distinguished.
@@ -1598,7 +1595,7 @@
 
 // This emulated DOGM has 'touch/xpt2046', not 'tft/xpt2046'
 #if ENABLED(TOUCH_SCREEN)
-  #if TOUCH_IDLE_SLEEP
+  #if TOUCH_IDLE_SLEEP_MINS
     #define HAS_TOUCH_SLEEP 1
   #endif
   #if NONE(TFT_TOUCH_DEVICE_GT911, TFT_TOUCH_DEVICE_XPT2046)
