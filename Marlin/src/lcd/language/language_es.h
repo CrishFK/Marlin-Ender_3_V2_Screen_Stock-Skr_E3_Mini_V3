@@ -324,7 +324,7 @@ namespace Language_es {
   LSTR MSG_PREPARE                        = _UxGT("Preparar");
   LSTR MSG_TUNE                           = _UxGT("Ajustar");
   LSTR MSG_START_PRINT                    = _UxGT("Iniciar impresión");
-  LSTR MSG_BUTTON_NEXT                    = _UxGT("Siguinte");
+  LSTR MSG_BUTTON_NEXT                    = _UxGT("Siguiente");
   LSTR MSG_BUTTON_INIT                    = _UxGT("Iniciar");
   LSTR MSG_BUTTON_STOP                    = _UxGT("Parar");
   LSTR MSG_BUTTON_PRINT                   = _UxGT("Imprimir");
