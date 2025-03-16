@@ -50,6 +50,7 @@ void GcodeSuite::M900() {
 
   #if EXTRUDERS < 2
     constexpr uint8_t tool_index = 0;
+    UNUSED(tool_index);
   #else
     const uint8_t tool_index = parser.intval('T', active_extruder);
     if (tool_index >= EXTRUDERS) {
@@ -119,8 +120,7 @@ void GcodeSuite::M900() {
         EXTRUDER_LOOP() {
           const bool slot = TEST(lin_adv_slot, e);
           SERIAL_ECHOLNPGM("Advance T", e, " S", slot, " K", planner.extruder_advance_K[e],
-                            "(S", !slot, " K", other_extruder_advance_K[e], ")");
-          SERIAL_EOL();
+                           "(S", !slot, " K", other_extruder_advance_K[e], ")");
         }
       #endif
 
@@ -131,10 +131,7 @@ void GcodeSuite::M900() {
         SERIAL_ECHOLNPGM("Advance K=", planner.extruder_advance_K[0]);
       #else
         SERIAL_ECHOPGM("Advance K");
-        EXTRUDER_LOOP() {
-          SERIAL_CHAR(' ', '0' + e, ':');
-          SERIAL_DECIMAL(planner.extruder_advance_K[e]);
-        }
+        EXTRUDER_LOOP() SERIAL_ECHO(C(' '), C('0' + e), C(':'), planner.extruder_advance_K[e]);
         SERIAL_EOL();
       #endif
 
@@ -144,6 +141,8 @@ void GcodeSuite::M900() {
 }
 
 void GcodeSuite::M900_report(const bool forReplay/*=true*/) {
+  TERN_(MARLIN_SMALL_BUILD, return);
+
   report_heading(forReplay, F(STR_LINEAR_ADVANCE));
   #if DISTINCT_E < 2
     report_echo_start(forReplay);

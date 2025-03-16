@@ -29,10 +29,6 @@
 #include "../../module/probe.h"
 #include "../../module/planner.h"
 
-#if ENABLED(BABYSTEP_ZPROBE_OFFSET)
-  #include "../../core/serial.h"
-#endif
-
 #if ENABLED(MESH_BED_LEVELING)
   #include "../../feature/bedlevel/bedlevel.h"
 #endif
@@ -130,5 +126,11 @@ void GcodeSuite::M290() {
     #endif
   }
 }
+
+#if ENABLED(EP_BABYSTEPPING) && DISABLED(EMERGENCY_PARSER)
+  // Without Emergency Parser M293/M294 will be added to the queue
+  void GcodeSuite::M293() { babystep.z_up(); }
+  void GcodeSuite::M294() { babystep.z_down(); }
+#endif
 
 #endif // BABYSTEPPING
