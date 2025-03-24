@@ -1548,7 +1548,7 @@
   #endif
 
   // Include a page of printer information in the LCD Main Menu
-  //#define LCD_INFO_MENU
+  #define LCD_INFO_MENU
   #if ENABLED(LCD_INFO_MENU)
     //#define LCD_PRINTER_INFO_IS_BOOTSCREEN // Show bootscreen(s) instead of Printer Info pages
   #endif
@@ -2288,7 +2288,7 @@
  *
  * Warning: Does not respect endstops!
  */
-//#define BABYSTEPPING
+#define BABYSTEPPING
 #if ENABLED(BABYSTEPPING)
   //#define EP_BABYSTEPPING                 // M293/M294 babystepping with EMERGENCY_PARSER support
   //#define BABYSTEP_WITHOUT_HOMING
@@ -2311,7 +2311,7 @@
 
   //#define BABYSTEP_DISPLAY_TOTAL          // Display total babysteps since last G28
 
-  //#define BABYSTEP_ZPROBE_OFFSET          // Combine M851 Z and Babystepping
+  #define BABYSTEP_ZPROBE_OFFSET          // Combine M851 Z and Babystepping
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
     //#define BABYSTEP_HOTEND_Z_OFFSET      // For multiple hotends, babystep relative Z offsets
     //#define BABYSTEP_GFX_OVERLAY          // Enable graphical overlay on Z-offset editor
@@ -2911,7 +2911,7 @@
  *
  * Enable PARK_HEAD_ON_PAUSE to add the G-code M125 Pause and Park.
  */
-//#define ADVANCED_PAUSE_FEATURE
+#define ADVANCED_PAUSE_FEATURE
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
   #define PAUSE_PARK_RETRACT_FEEDRATE         60  // (mm/s) Initial retract feedrate.
   #define PAUSE_PARK_RETRACT_LENGTH            2  // (mm) Initial retract.
@@ -2954,7 +2954,7 @@
   //#define PARK_HEAD_ON_PAUSE                    // Park the nozzle during pause and filament change.
   //#define HOME_BEFORE_FILAMENT_CHANGE           // If needed, home before parking for filament change
 
-  //#define FILAMENT_LOAD_UNLOAD_GCODES           // Add M701/M702 Load/Unload G-codes, plus Load/Unload in the LCD Prepare menu.
+  #define FILAMENT_LOAD_UNLOAD_GCODES           // Add M701/M702 Load/Unload G-codes, plus Load/Unload in the LCD Prepare menu.
   //#define FILAMENT_UNLOAD_ALL_EXTRUDERS         // Allow M702 to unload all extruders above a minimum target temp (as set by M302)
   #define CONFIGURE_FILAMENT_CHANGE               // Add M603 G-code and menu items. Requires ~1.3K bytes of flash.
 #endif
@@ -3912,7 +3912,7 @@
 /**
  * Extra options for the M114 "Current Position" report
  */
-//#define M114_DETAIL         // Use 'M114` for details to check planner calculations
+#define M114_DETAIL         // Use 'M114` for details to check planner calculations
 //#define M114_REALTIME       // Real current position based on forward kinematics
 //#define M114_LEGACY         // M114 used to synchronize on every call. Enable if needed.
 
@@ -3922,7 +3922,7 @@
  */
 //#define AUTO_REPORT_FANS
 
-//#define REPORT_FAN_CHANGE   // Report the new fan speed when changed by M106 (and others)
+#define REPORT_FAN_CHANGE   // Report the new fan speed when changed by M106 (and others)
 
 /**
  * Auto-report temperatures with M155 S<seconds>
@@ -3935,7 +3935,7 @@
 /**
  * Auto-report position with M154 S<seconds>
  */
-//#define AUTO_REPORT_POSITION
+#define AUTO_REPORT_POSITION
 #if ENABLED(AUTO_REPORT_POSITION)
   //#define AUTO_REPORT_REAL_POSITION // Auto-report the real position
 #endif
@@ -3949,7 +3949,7 @@
   // Include capabilities in M115 output
   #define EXTENDED_CAPABILITIES_REPORT
   #if ENABLED(EXTENDED_CAPABILITIES_REPORT)
-    //#define M115_GEOMETRY_REPORT
+    #define M115_GEOMETRY_REPORT
   #endif
 #endif
 

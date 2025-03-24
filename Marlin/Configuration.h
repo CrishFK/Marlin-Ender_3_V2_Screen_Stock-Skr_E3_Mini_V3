@@ -81,7 +81,7 @@
  *
  * :[-1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
  */
-#define SERIAL_PORT -1
+#define SERIAL_PORT 2
 
 /**
  * Serial Port Baud Rate
@@ -94,7 +94,7 @@
  *
  * :[2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000]
  */
-#define BAUDRATE 250000
+#define BAUDRATE 115200
 
 //#define BAUD_RATE_GCODE     // Enable G-code M575 to set the baud rate
 
@@ -103,8 +103,8 @@
  * Currently Ethernet (-2) is only supported on Teensy 4.1 boards.
  * :[-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
  */
-//#define SERIAL_PORT_2 -1
-//#define BAUDRATE_2 250000   // :[2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000] Enable to override BAUDRATE
+#define SERIAL_PORT_2 -1
+#define BAUDRATE_2 115200   // :[2400, 9600, 19200, 38400, 57600, 115200, 250000, 500000, 1000000] Enable to override BAUDRATE
 
 /**
  * Select a third serial port on the board to use for communication with the host.
@@ -2125,7 +2125,7 @@
  * these options to restore the prior leveling state or to always enable
  * leveling immediately after G28.
  */
-//#define RESTORE_LEVELING_AFTER_G28
+#define RESTORE_LEVELING_AFTER_G28
 //#define ENABLE_LEVELING_AFTER_G28
 
 /**
@@ -2493,7 +2493,7 @@
  *    P1  Raise the nozzle always to Z-park height.
  *    P2  Raise the nozzle by Z-park amount, limited to Z_MAX_POS.
  */
-//#define NOZZLE_PARK_FEATURE
+#define NOZZLE_PARK_FEATURE
 
 #if ENABLED(NOZZLE_PARK_FEATURE)
   // Specify a park position as { X, Y, Z_raise }
@@ -2698,7 +2698,7 @@
  *
  * :{ 'en':'English', 'an':'Aragonese', 'bg':'Bulgarian', 'ca':'Catalan', 'cz':'Czech', 'da':'Danish', 'de':'German', 'el':'Greek (Greece)', 'el_CY':'Greek (Cyprus)', 'es':'Spanish', 'eu':'Basque-Euskera', 'fi':'Finnish', 'fr':'French', 'gl':'Galician', 'hr':'Croatian', 'hu':'Hungarian', 'it':'Italian', 'jp_kana':'Japanese', 'ko_KR':'Korean (South Korea)', 'nl':'Dutch', 'pl':'Polish', 'pt':'Portuguese', 'pt_br':'Portuguese (Brazilian)', 'ro':'Romanian', 'ru':'Russian', 'sk':'Slovak', 'sv':'Swedish', 'tr':'Turkish', 'uk':'Ukrainian', 'vi':'Vietnamese', 'zh_CN':'Chinese (Simplified)', 'zh_TW':'Chinese (Traditional)' }
  */
-#define LCD_LANGUAGE en
+#define LCD_LANGUAGE es
 
 /**
  * LCD Character Set
@@ -2722,7 +2722,7 @@
  *
  * :['JAPANESE', 'WESTERN', 'CYRILLIC']
  */
-#define DISPLAY_CHARSET_HD44780 JAPANESE
+#define DISPLAY_CHARSET_HD44780 WESTERN
 
 /**
  * Info Screen Style (0:Classic, 1:Průša, 2:CNC)
@@ -3117,7 +3117,7 @@
 //
 // Connect to EXP1 on RAMPS and compatible boards.
 //
-//#define CR10_STOCKDISPLAY
+#define CR10_STOCKDISPLAY
 
 //
 // Ender-2 OEM display, a variant of the MKS_MINI_12864
@@ -3484,8 +3484,8 @@
 //
 //#define DWIN_CREALITY_LCD           // Creality UI
 //#define DWIN_LCD_PROUI              // Pro UI by MRiscoC
-#define DWIN_CREALITY_LCD_JYERSUI   // Jyers UI by Jacob Myers
-#define NO_CONTROLLER_CUSTOM_WIRING_WARNING
+//#define DWIN_CREALITY_LCD_JYERSUI   // Jyers UI by Jacob Myers
+//#define NO_CONTROLLER_CUSTOM_WIRING_WARNING
 //#define DWIN_MARLINUI_PORTRAIT      // MarlinUI (portrait orientation)
 //#define DWIN_MARLINUI_LANDSCAPE     // MarlinUI (landscape orientation)
 
